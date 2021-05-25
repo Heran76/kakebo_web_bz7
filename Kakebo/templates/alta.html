@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block titulo %}Nuevo{% endblock %}
+{% block contenido %}
+<h1>Nuevo movimiento  </h1>
+<form action="nuevo" method="post">
+    <fieldset class="container">
+        <div class="row">
+            <div class="col-sm-3">
+                {{ form.fecha.label }}
+            </div>
+            <div class="col-sm-9">
+                {{ form.fecha() }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3">
+                {{ form.concepto.label }}
+            </div>
+            <div class="col-sm-9">
+                {{ form.concepto() }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-3">
+                {{ form.categoria.label }}
+            </div>
+            <div class="col-sm-9">
+                {{ form.categoria() }}
+            </div>
+        </div>
+    </fieldset>
+    {{ form.submitlabel }} 
+</form>
+
+{% endblock %}
