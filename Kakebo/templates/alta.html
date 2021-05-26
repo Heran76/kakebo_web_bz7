@@ -4,32 +4,27 @@
 <h1>Nuevo movimiento  </h1>
 <form action="nuevo" method="post">
     <fieldset class="container">
-        <div class="row">
-            <div class="col-sm-3">
-                {{ form.fecha.label }}
-            </div>
-            <div class="col-sm-9">
-                {{ form.fecha() }}
-            </div>
+        <div>
+            {{ form.fecha.label(class="mylabel") }}
+            {{ form.fecha() }}
         </div>
-        <div class="row">
-            <div class="col-sm-3">
-                {{ form.concepto.label }}
-            </div>
-            <div class="col-sm-9">
-                {{ form.concepto() }}
-            </div>
+        <div >
+            {{ form.concepto.label(class="mylabel") }}
+            {{ form.concepto() }}
         </div>
-        <div class="row">
-            <div class="col-sm-3">
-                {{ form.categoria.label }}
-            </div>
-            <div class="col-sm-9">
-                {{ form.categoria() }}
-            </div>
+        <div >
+            {{ form.categoria.label(class="mylabel") }}
+            {{ form.categoria() }}
+        </div>
+        <div >
+            {{ form.cantidad.label(class="mylabel") }}
+            {{ form.cantidad() }}
+        </div>
+        <div >
+            {{ form.esGasto.label(class="mylabel") }}
+            {{ form.esGasto() }}
         </div>
     </fieldset>
-    {{ form.submitlabel }} 
+    {{ form.submit()}}
 </form>
-
 {% endblock %}

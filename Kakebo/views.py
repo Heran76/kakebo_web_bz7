@@ -1,5 +1,5 @@
 from Kakebo import app
-from flask import jsonify, render_template
+from flask import jsonify, render_template, request
 from Kakebo.forms import MovimientosForm
 import sqlite3
 @app.route('/')
