@@ -4,3 +4,8 @@
     font-weight: bold;
     text-align: right;
 }
+
+.msg-error{
+    font-size: 0,8em;
+    color: darkred;
+}

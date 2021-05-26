@@ -1,7 +1,10 @@
 from Kakebo import app
 from flask import jsonify, render_template, request
 from Kakebo.forms import MovimientosForm
+
 import sqlite3
+
+
 @app.route('/')
 def index():
     conexion = sqlite3.connect("movimientos.db")
@@ -26,5 +29,20 @@ def index():
     return render_template('movimientos.html', datos = movimientos)
 @app.route('/nuevo', methods=['GET', 'POST'])
 def nuevo():
-    form = MovimientosForm()
-    return render_template('alta.html', form = form)
+    formulario = MovimientosForm()
+
+    if request.method == 'GET':
+           return render_template('alta.html', form=formulario)
+    else:
+          if formulario.validate():
+              pass     
+    
+          
+          
+          
+          
+          
+          else: 
+           return render_template('alta,html', form=formulario)
+    
+ 

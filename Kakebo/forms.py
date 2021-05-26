@@ -1,12 +1,18 @@
 from flask_wtf import FlaskForm
-from wtforms import DateField, StringField, SelectField, SubmitField
-from wtforms.fields.core import BooleanField, FloatField
-from wtforms.validators import DataRequired, Length
+from wtforms import DateField, StringField, SelectField, SubmitField, FloatField, BooleanField
+from wtforms.validators import DataRequired, Length, ValidationError
+from datetime import date
+def fecha_por_debajo_de_hoy(formulario, campo):
+   hoy= date.today()
+   if campo.date > hoy:
+       raise ValidationError('la fecha no puedes ser mayor que {}'.format(campo.data, hoy))
+
+
 class MovimientosForm(FlaskForm):
     fecha = DateField("Fecha", validators = [DataRequired()])
     concepto = StringField("Concepto", validators = [DataRequired(), Length(min=10)])
     categoria = SelectField("Categoria", choices=[('SU', 'Supervivencia'), ('OV', 'Ocio/Vicio'), 
                             ('CU', 'Cultura'), ('EX', 'Extras')])
-    cantidad = FloatField("Cantidad", validators= [DataRequired()])
+    cantidad = FloatField("Cantidad", validators = [DataRequired()])
     esGasto = BooleanField("Es gasto")
     submit = SubmitField('Aceptar')
