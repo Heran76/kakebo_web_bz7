@@ -8,4 +8,6 @@
 .msg-error{
     font-size: 0,8em;
     color: darkred;
+    font-weight: bold;
+
 }
