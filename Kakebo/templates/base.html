@@ -5,14 +5,23 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kakebo | {% block titulo %}{% endblock %}</title>
-<link rel="stylesheet" href="static/css/mini-default.css">
-
+    <link rel="stylesheet" href="static/css/mini-default.css">
+    <link rel="stylesheet" href="static/css/styles.css">
 </head>
 <body>
-    <header class="oscuro" id="cabecera">
+    <header>
         Kakebo Web - BZ VII
     </header>
-    <section class="container" >
+    {% with mensajes = get_flashed_messages() %}
+        {% if mensajes %}
+        <div class="popup">
+            {% for mensaje in mensajes %}
+            <p>{{ mensaje }}</p>
+            {% endfor %}
+        </div>
+        {% endif%}
+    {% endwith %}
+<section class="container">
         {% block contenido %}{% endblock %}
     </section>
     <footer>
@@ -20,3 +29,4 @@
     </footer>
 </body>
 </html>
+

@@ -1,2 +1,2 @@
-SECRET_KEY=<clave>
-DB_PATH=<Usuario>
+SECRET_KEY=<clave secreta para WTF>
+DATABASE=<ruta de acceso a la base de datos>

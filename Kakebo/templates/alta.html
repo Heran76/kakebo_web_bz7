@@ -1,47 +1,55 @@
-from kakebo import app
-from flask import jsonify, render_template, request
-from kakebo.forms import MovimientosForm
+{% extends 'base.html' %}
 
-import sqlite3
+{% block titulo %}Nuevo{% endblock %}
 
-@app.route('/')
-def index():
-    conexion = sqlite3.connect("movimientos.db")
-    cur = conexion.cursor()
+{% block contenido %}
+<h1>Nuevo movimiento  </h1>
+<form action="nuevo" method="post">
+    <fieldset class="container">
+        {{ form.hidden_tag() }}
 
-    cur.execute("SELECT * FROM movimientos;")
+        <div>
+            {{ form.fecha.label(class="mylabel") }}
+            {{ form.fecha( type="date") }}
+            {% for error in form.fecha.errors %}
+                <p class="msg-err">
+                    {{ error }}
+                </p>
+            {% endfor %}
+        </div>
+        <div >
+            {{ form.concepto.label(class="mylabel") }}
+            {{ form.concepto(placeholder="Razón del gasto") }}
+            {% for error in form.concepto.errors %}
+                <p class="msg-err">
+                    {{ error }}
+                </p>
+            {% endfor %}
+        </div>
+        <div >
+            {{ form.categoria.label(class="mylabel") }}
+            {{ form.categoria() }}
+            {% for error in form.categoria.errors %}
+                <p class="msg-err">
+                    {{ error }}
+                </p>
+            {% endfor %}
+        </div>
+        <div >
+            {{ form.cantidad.label(class="mylabel") }}
+            {{ form.cantidad() }}
+            {% for error in form.cantidad.errors %}
+                <p class="msg-err">
+                    {{ error }}
+                </p>
+            {% endfor %}
+        </div>
+        <div >
+            {{ form.esGasto.label(class="mylabel") }}
+            {{ form.esGasto() }}
+        </div>
+    </fieldset>
+    {{ form.submit()}}
+</form>
 
-    claves = cur.description
-    filas = cur.fetchall()
-    movimientos = []
-    saldo = 0
-    for fila in filas:
-        d = {}
-        for tclave, valor in zip(claves, fila):
-            d[tclave[0]] = valor
-            print(d)
-        if d['esGasto'] == 0:
-            saldo = saldo + d['cantidad']
-        else:
-            saldo = saldo - d['cantidad']
-        d['saldo'] = saldo
-        movimientos.append(d)
-
-    conexion.close()
-
-    return render_template('movimientos.html', datos = movimientos)
-
-
-@app.route('/nuevo', methods=['GET', 'POST'])
-def nuevo():
-    formulario = MovimientosForm()
-
-    if request.method == 'GET':
-        return render_template('alta.html', form = formulario)
-    else:
-        if formulario.validate():
-            pass
-            #Insertar el movimiento en la base de datos
-            #Redirect a la ruta /
-        else:
-            return render_template('alta.html', form = formulario)
+{% endblock %}
