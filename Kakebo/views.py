@@ -1,6 +1,6 @@
 from kakebo import app
 from flask import jsonify, render_template, request, redirect, url_for, flash
-from kakebo.forms import MovimientosForm
+from kakebo.forms import MovimientosForm, FiltraMovimientosForm
 from datetime import date
 
 import sqlite3
@@ -41,7 +41,25 @@ def modificaTablaSQL(query, parametros=[]):
 
 @app.route('/')
 def index():
-    movimientos = consultaSQL("SELECT * FROM movimientos order by fecha;")
+    filtraForm = FiltraMovimientosForm()
+    """
+    TODO: Validar filtraForm
+    TODO: crear query adecuada
+    """
+    if filtraForm.validate():
+        query ="SELECT * FROM movimientos WHERE 1 = 1"
+        Parametros = []
+        if filtraForm.fecha.data != None:
+            query += "WHERE fecha >= ?" -> "SELECT * FROM movimientos WHERE fecha >= ?"
+            Parametros.append(filtraForm.fechaDesde.data)
+
+        if filtraForm.fechaHasta.data != None:
+            query += "AND feccha <= ?"
+            Parametros.append(filtraForm.fechaHasta.data) 
+        if filtraForm.texto.data != None:
+            query += "AND concepto "       
+
+    movimientos = consultaSQL(query)
 
     saldo = 0
     for d in movimientos:
@@ -51,7 +69,7 @@ def index():
             saldo = saldo - d['cantidad']
         d['saldo'] = saldo
 
-    return render_template('movimientos.html', datos = movimientos)
+    return render_template('movimientos.html', datos = movimientos, formulario = filtraForm)
 
 
 @app.route('/nuevo', methods=['GET', 'POST'])
@@ -112,5 +130,24 @@ def modificar(id):
         formulario = MovimientosForm(data=registro)
         
         return render_template('modificar.html', form=formulario)
-    else:
-        formulario = Movimientosform()
+
+    if request.method == 'POST':
+        formulario = MovimientosForm()
+        if formulario.validate():
+            try:
+                modificaTablaSQL("UPDATE movimientos SET fecha = ?, concepto = ?, categoria = ?, esGasto = ?, cantidad = ? WHERE id = ?",
+                                [formulario.fecha.data,
+                                formulario.concepto.data,
+                                formulario.categoria.data,
+                                formulario.esGasto.data,
+                                formulario.cantidad.data,
+                                id]
+                )
+                flash("Modificación realizada con éxito", "aviso")
+                return redirect(url_for("index"))
+            except sqlite3.Error as e:
+                print("Error en update:", e)
+                flash("Se ha producido un error en acceso a base de datos. Contacte con administrador", "error")
+                return render_template('modificar.html', form=formulario)
+        else:
+            return render_template('modificar.html', form=formulario)
