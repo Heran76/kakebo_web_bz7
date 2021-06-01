@@ -2,64 +2,32 @@ from kakebo import app
 from flask import jsonify, render_template, request, redirect, url_for, flash
 from kakebo.forms import MovimientosForm, FiltraMovimientosForm
 from datetime import date
+from kakebo.dataaccess import *
 
-import sqlite3
+dbManager = DBmanager()
 
-def consultaSQL(query, parametros=[]):
-    # Abrimos la conexion
-    conexion = sqlite3.connect("movimientos.db")
-    cur = conexion.cursor()
 
-    # Ejecutamos la consulta
-    cur.execute(query, parametros)
-
-    # Obtenemos los datos de la consulta
-    claves = cur.description
-    filas = cur.fetchall()
-
-    # Procesar los datos para devolver una lista de diccionarios. Un diccionario por fila
-
-    resultado = []
-    for fila in filas:
-        d = {}
-        for tclave, valor in zip(claves, fila):
-            d[tclave[0]] = valor
-        resultado.append(d)
-
-    conexion.close()
-    return resultado
-
-def modificaTablaSQL(query, parametros=[]):
-    conexion = sqlite3.connect("movimientos.db")
-    cur = conexion.cursor()
-
-    cur.execute(query, parametros)
-
-    conexion.commit()
-    conexion.close()
-    
-
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
     filtraForm = FiltraMovimientosForm()
-    """
-    TODO: Validar filtraForm
-    TODO: crear query adecuada
-    """
-    if filtraForm.validate():
-        query ="SELECT * FROM movimientos WHERE 1 = 1"
-        Parametros = []
-        if filtraForm.fecha.data != None:
-            query += "WHERE fecha >= ?" -> "SELECT * FROM movimientos WHERE fecha >= ?"
-            Parametros.append(filtraForm.fechaDesde.data)
+    query = "SELECT * FROM movimientos WHERE 1 = 1"
+    parametros = []
 
-        if filtraForm.fechaHasta.data != None:
-            query += "AND feccha <= ?"
-            Parametros.append(filtraForm.fechaHasta.data) 
-        if filtraForm.texto.data != None:
-            query += "AND concepto "       
+    if request.method == 'POST':
+        if filtraForm.validate():
+            if filtraForm.fechaDesde.data != None:
+                query += " AND fecha >= ?" 
+                parametros.append(filtraForm.fechaDesde.data)
+            if filtraForm.fechaHasta.data != None:
+                query += " AND fecha <= ?"
+                parametros.append(filtraForm.fechaHasta.data)
+            if filtraForm.texto.data != '':
+                query += ' AND concepto LIKE ?'
+                parametros.append("%{}%".format(filtraForm.texto.data))  
 
-    movimientos = consultaSQL(query)
+    query += " ORDER BY fecha"
+    print(query)
+    movimientos = dbManager.consultaMuchasSQL(query, parametros)
 
     saldo = 0
     for d in movimientos:
@@ -68,9 +36,8 @@ def index():
         else:
             saldo = saldo - d['cantidad']
         d['saldo'] = saldo
-
     return render_template('movimientos.html', datos = movimientos, formulario = filtraForm)
-
+    
 
 @app.route('/nuevo', methods=['GET', 'POST'])
 def nuevo():
@@ -83,7 +50,7 @@ def nuevo():
         if formulario.validate():
             query = "INSERT INTO movimientos (fecha, concepto, categoria, esGasto, cantidad) VALUES (?, ?, ?, ?, ?)"
             try:
-                modificaTablaSQL(query, [formulario.fecha.data, formulario.concepto.data, formulario.categoria.data,
+                dbManager.modificaTablaSQL(query, [formulario.fecha.data, formulario.concepto.data, formulario.categoria.data,
                                 formulario.esGasto.data, formulario.cantidad.data])
 
             except sqlite3.Error as el_error:
@@ -101,7 +68,7 @@ def nuevo():
 @app.route('/borrar/<int:id>', methods=['GET', 'POST'])
 def borrar(id):
     if request.method == 'GET':
-        filas = consultaSQL("SELECT * FROM movimientos WHERE id=?", [id])
+        filas = dbManager.consultaUnaSQL("SELECT * FROM movimientos WHERE id=?", [id])
         if len(filas) == 0:
             flash("El registro no existe", "error")
             return render_template('borrar.html', )
@@ -109,7 +76,7 @@ def borrar(id):
         return render_template('borrar.html', movimiento=filas[0])
     else:
         try:
-            modificaTablaSQL("DELETE FROM movimientos WHERE id = ?;", [id])
+            dbManager.modificaTablaSQL("DELETE FROM movimientos WHERE id = ?;", [id])
         except sqlite3.error as e:
             flash("Se ha producido un error de base de datos, vuelva a intentarlo", 'error')
             return redirect(url_for('index'))
@@ -120,11 +87,10 @@ def borrar(id):
 @app.route('/modificar/<int:id>', methods=['GET', 'POST'])
 def modificar(id):
     if request.method == 'GET':
-        filas = consultaSQL("SELECT * FROM movimientos WHERE id=?", [id])
-        if len(filas) == 0:
+        registro = dbManager.consultaUnaSQL("SELECT * FROM movimientos WHERE id=?", [id])
+        if not registro == 0:
             flash("El registro no existe", "error")
             return render_template('modificar.html', )
-        registro = filas[0]
         registro['fecha'] = date.fromisoformat(registro['fecha'])
 
         formulario = MovimientosForm(data=registro)
@@ -135,7 +101,7 @@ def modificar(id):
         formulario = MovimientosForm()
         if formulario.validate():
             try:
-                modificaTablaSQL("UPDATE movimientos SET fecha = ?, concepto = ?, categoria = ?, esGasto = ?, cantidad = ? WHERE id = ?",
+                dbManager.modificaTablaSQL("UPDATE movimientos SET fecha = ?, concepto = ?, categoria = ?, esGasto = ?, cantidad = ? WHERE id = ?",
                                 [formulario.fecha.data,
                                 formulario.concepto.data,
                                 formulario.categoria.data,
